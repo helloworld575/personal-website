@@ -6,9 +6,11 @@ import {
   Container,
   Flex,
   Heading,
+  Icon,
   Input,
   Text,
 } from "@chakra-ui/react";
+import { EditIcon, AttachmentIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import { apiGet, getStoredApiKey } from "../../components/apiClient";
 
 /**
@@ -149,8 +151,8 @@ export default function AdminHomePage() {
           <Button
             type="submit"
             colorScheme="blue"
-            loading={loading}
-            disabled={!apiKeyInput.trim()}
+            isLoading={loading}
+            isDisabled={!apiKeyInput.trim()}
           >
             进入管理后台
           </Button>
@@ -177,9 +179,12 @@ export default function AdminHomePage() {
 
       <Flex direction={{ base: "column", md: "row" }} gap={6} align="stretch">
         <Box as="section" bg="white" boxShadow="sm" borderRadius="lg" p={5} flex="1">
-          <Heading as="h2" size="md" mb={2}>
-            博客管理
-          </Heading>
+          <Flex align="center" gap={2} mb={2}>
+            <Icon as={EditIcon} color="blue.500" />
+            <Heading as="h2" size="md">
+              博客管理
+            </Heading>
+          </Flex>
           <Text fontSize="sm" color="gray.600" mb={4}>
             创建、编辑与删除博客文章，支持 Markdown 编写与实时预览。
           </Text>
@@ -191,9 +196,12 @@ export default function AdminHomePage() {
         </Box>
 
         <Box as="section" bg="white" boxShadow="sm" borderRadius="lg" p={5} flex="1">
-          <Heading as="h2" size="md" mb={2}>
-            报告管理
-          </Heading>
+          <Flex align="center" gap={2} mb={2}>
+            <Icon as={AttachmentIcon} color="teal.500" />
+            <Heading as="h2" size="md">
+              报告管理
+            </Heading>
+          </Flex>
           <Text fontSize="sm" color="gray.600" mb={4}>
             查看与管理模型调用报告，支持粘贴内容或上传 docx 自动解析。
           </Text>
@@ -205,9 +213,12 @@ export default function AdminHomePage() {
         </Box>
 
         <Box as="section" bg="white" boxShadow="sm" borderRadius="lg" p={5} flex="1">
-          <Heading as="h2" size="md" mb={2}>
-            待办管理
-          </Heading>
+          <Flex align="center" gap={2} mb={2}>
+            <Icon as={CheckCircleIcon} color="purple.500" />
+            <Heading as="h2" size="md">
+              待办管理
+            </Heading>
+          </Flex>
           <Text fontSize="sm" color="gray.600" mb={4}>
             管理个人待办事项，支持优先级和状态筛选，记录工作节奏。
           </Text>

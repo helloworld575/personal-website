@@ -238,7 +238,7 @@ export default function AdminBlogPage() {
               <Button
                 colorScheme="blue"
                 onClick={onSubmit}
-                loading={saving}
+                isLoading={saving}
               >
                 {form.id ? "更新" : "创建"}
               </Button>

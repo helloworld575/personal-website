@@ -4,9 +4,11 @@ import {
   Box,
   Container,
   Flex,
+  Icon,
   Link as ChakraLink,
   Text,
 } from "@chakra-ui/react";
+import { EditIcon, CheckCircleIcon } from "@chakra-ui/icons";
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,24 +30,35 @@ export default function Layout({ children }: LayoutProps) {
               href="/"
               fontWeight="bold"
               fontSize="lg"
+              display="flex"
+              alignItems="center"
+              gap={2}
               _hover={{ textDecoration: "none", color: "blue.500" }}
             >
-              个人网站 · 博客
+              <Icon as={EditIcon} color="blue.500" boxSize={4} />
+              <Text as="span">ThomasLee的博客</Text>
             </ChakraLink>
-            <Flex gap={4} fontSize="sm" color="gray.700">
+            <Flex gap={4} fontSize="sm" color="gray.700" align="center">
               <ChakraLink
                 as={NextLink}
                 href="/"
+                display="flex"
+                alignItems="center"
+                gap={1}
                 _hover={{ color: "blue.500" }}
               >
-                博客
+                <Text as="span">博客</Text>
               </ChakraLink>
               <ChakraLink
                 as={NextLink}
                 href="/admin"
+                display="flex"
+                alignItems="center"
+                gap={1}
                 _hover={{ color: "blue.500" }}
               >
-                管理后台
+                <Icon as={CheckCircleIcon} boxSize={3} />
+                <Text as="span">管理后台</Text>
               </ChakraLink>
             </Flex>
           </Flex>
@@ -67,7 +80,7 @@ export default function Layout({ children }: LayoutProps) {
         color="gray.500"
       >
         <Text>
-          © {currentYear} 个人网站 · Powered by Next.js &amp; FastAPI
+          © {currentYear} ThomasLee的博客 · Powered by Next.js &amp; FastAPI
         </Text>
       </Box>
     </Box>

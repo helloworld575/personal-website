@@ -1,6 +1,6 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import Layout from "../components/Layout";
 import "../styles/globals.css";
 import "@uiw/react-md-editor/markdown-editor.css";
@@ -11,13 +11,14 @@ import "@uiw/react-markdown-preview/markdown.css";
  */
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ChakraProvider value={defaultSystem}>
+    <ChakraProvider>
       <Head>
-        <title>个人网站 · 博客与内部工具</title>
+        <title>ThomasLee的博客</title>
         <meta
           name="description"
-          content="个人博客与内部工具（博客管理、报告管理、待办事项）。"
+          content="ThomasLee 的个人博客与内部工具（博客管理、报告管理、待办事项）。"
         />
+        <link rel="icon" href="/favicon.svg" />
       </Head>
       <Layout>
         <Component {...pageProps} />

@@ -1,0 +1,30 @@
+# Node / Next.js
+node_modules/
+.next/
+.out/
+
+# 构建产物
+/dist/
+/build/
+
+# 环境变量与敏感文件
+.env
+.env.local
+.env.*
+backend/.env
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.pyo
+
+# SQLite 数据库文件
+*.db
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+
+# 日志文件
+*.log

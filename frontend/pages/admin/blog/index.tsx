@@ -1,8 +1,25 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
+import dynamic from "next/dynamic";
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Heading,
+  Input,
+  Text,
+} from "@chakra-ui/react";
 import { apiDelete, apiGet, apiPost, apiPut } from "../../../components/apiClient";
+
+const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
+  ssr: false,
+}) as any;
+
+const MDEditorPreview = dynamic(
+  () => import("@uiw/react-md-editor").then((mod) => mod.default.Markdown),
+  { ssr: false }
+) as any;
 
 interface BlogItem {
   id: number;
@@ -24,7 +41,7 @@ interface BlogFormState {
 }
 
 /**
- * 博客管理页：增删改查 + Markdown 实时预览（基于 react-markdown）。
+ * 博客管理页：增删改查 + 专业 Markdown 编辑器 + 实时预览。
  */
 export default function AdminBlogPage() {
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
@@ -71,18 +88,26 @@ export default function AdminBlogPage() {
   };
 
   const onDelete = async (id: number) => {
-    if (!window.confirm("确定要删除该博客吗？")) return;
+    if (typeof window !== "undefined") {
+      const ok = window.confirm("确定要删除该博客吗？");
+      if (!ok) return;
+    }
+
     try {
       await apiDelete(`/api/admin/blogs/${id}`, true);
       await loadBlogs();
     } catch (err: any) {
-      alert(err?.message || "删除失败");
+      if (typeof window !== "undefined") {
+        window.alert(err?.message || "删除失败");
+      }
     }
   };
 
   const onSubmit = async () => {
     if (!form.title || !form.content_md) {
-      alert("标题和内容不能为空。");
+      if (typeof window !== "undefined") {
+        window.alert("标题和内容不能为空。");
+      }
       return;
     }
 
@@ -112,266 +137,205 @@ export default function AdminBlogPage() {
   };
 
   return (
-    <div>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>博客管理</h1>
-      <p style={{ marginBottom: "1rem", color: "#4b5563" }}>
-        在这里可以创建、编辑、删除博客文章，并实时预览 Markdown 渲染效果。
-      </p>
+    <Container maxW="7xl" py={2} px={{ base: 0, md: 0 }}>
+      <Box bg="transparent" mb={6}>
+        <Heading as="h1" size="lg" mb={2}>
+          博客管理
+        </Heading>
+        <Text color="gray.600" fontSize="sm">
+          在这里可以创建、编辑、删除博客文章，并使用专业 Markdown 编辑器进行实时预览。
+        </Text>
+      </Box>
 
       {error && (
-        <div
-          style={{
-            marginBottom: "0.75rem",
-            color: "#b91c1c",
-            fontSize: "0.9rem",
-          }}
+        <Box
+          mb={4}
+          borderWidth="1px"
+          borderColor="red.200"
+          bg="red.50"
+          borderRadius="md"
+          p={3}
         >
-          {error}
-        </div>
+          <Text fontSize="sm" color="red.600">
+            {error}
+          </Text>
+        </Box>
       )}
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.1fr 1.1fr",
-          gap: "1rem",
-          alignItems: "flex-start",
-          marginBottom: "1.5rem",
-        }}
+      <Flex
+        direction={{ base: "column", lg: "row" }}
+        align="flex-start"
+        gap={6}
+        mb={10}
       >
-        <div>
-          <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>
-            {form.id ? "编辑博客" : "新建博客"}
-          </h2>
-          <div style={{ marginBottom: "0.6rem" }}>
-            <label
-              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
-            >
-              标题
-            </label>
-            <input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "0.45rem 0.55rem",
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "0.6rem" }}>
-            <label
-              style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}
-            >
-              标签（以逗号分隔）
-            </label>
-            <input
-              value={form.tags}
-              onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              placeholder="例如：技术,生活"
-              style={{
-                width: "100%",
-                padding: "0.45rem 0.55rem",
-                borderRadius: 6,
-                border: "1px solid #d1d5db",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "0.6rem" }}>
-            <label
-              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
+        <Box flex="1" bg="white" p={5} borderRadius="lg" boxShadow="sm">
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading as="h2" size="md">
+              {form.id ? "编辑博客" : "新建博客"}
+            </Heading>
+            {form.id && (
+              <Button variant="ghost" size="sm" onClick={resetForm}>
+                取消编辑
+              </Button>
+            )}
+          </Flex>
+
+          <Box display="flex" flexDirection="column" gap={4}>
+            <Box>
+              <Text fontSize="sm" mb={1}>
+                标题
+              </Text>
+              <Input
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="请输入博客标题"
+              />
+            </Box>
+
+            <Box>
+              <Text fontSize="sm" mb={1}>
+                标签（以逗号分隔）
+              </Text>
+              <Input
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                placeholder="例如：技术,生活"
+              />
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={2}>
               <input
+                id="published"
                 type="checkbox"
                 checked={form.published}
                 onChange={(e) =>
                   setForm({ ...form, published: e.target.checked })
                 }
               />
-              <span style={{ fontSize: "0.9rem" }}>发布（勾选后对外可见）</span>
-            </label>
-          </div>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <span style={{ fontSize: "0.9rem", color: "#6b7280" }}>
-              下方为 Markdown 文本编辑区，右侧为实时渲染预览。
-            </span>
-          </div>
-          <textarea
-            value={form.content_md}
-            onChange={(e) =>
-              setForm({ ...form, content_md: e.target.value })
-            }
-            rows={18}
-            style={{
-              width: "100%",
-              padding: "0.6rem 0.7rem",
-              borderRadius: 6,
-              border: "1px solid #d1d5db",
-              fontFamily: "monospace",
-              fontSize: "0.9rem",
-              resize: "vertical",
-            }}
-          />
-          <div style={{ marginTop: "0.75rem" }}>
-            <button
-              type="button"
-              onClick={onSubmit}
-              disabled={saving}
-              style={{
-                padding: "0.45rem 1.1rem",
-                borderRadius: 6,
-                border: "none",
-                backgroundColor: saving ? "#9ca3af" : "#2563eb",
-                color: "#ffffff",
-                cursor: saving ? "not-allowed" : "pointer",
-                marginRight: "0.5rem",
-              }}
-            >
-              {saving ? "保存中..." : form.id ? "更新" : "创建"}
-            </button>
-            {form.id && (
-              <button
-                type="button"
-                onClick={resetForm}
-                style={{
-                  padding: "0.45rem 0.9rem",
-                  borderRadius: 6,
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#ffffff",
-                  cursor: "pointer",
-                }}
+              <label htmlFor="published">
+                <Text as="span" fontSize="sm">
+                  发布（勾选后对外可见）
+                </Text>
+              </label>
+            </Box>
+
+            <Box>
+              <Text fontSize="sm" color="gray.500" mb={2}>
+                下方为 Markdown 编辑器，右侧为渲染预览。
+              </Text>
+              <Box data-color-mode="light">
+                <MDEditor
+                  value={form.content_md}
+                  onChange={(val: string | undefined) =>
+                    setForm({ ...form, content_md: val || "" })
+                  }
+                  height={420}
+                />
+              </Box>
+            </Box>
+
+            <Flex justify="flex-end" pt={2} gap={3}>
+              <Button
+                colorScheme="blue"
+                onClick={onSubmit}
+                loading={saving}
               >
-                取消编辑
-              </button>
-            )}
-          </div>
-        </div>
+                {form.id ? "更新" : "创建"}
+              </Button>
+              {form.id && (
+                <Button variant="outline" onClick={resetForm}>
+                  重置表单
+                </Button>
+              )}
+            </Flex>
+          </Box>
+        </Box>
 
-        <div>
-          <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>实时预览</h2>
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              borderRadius: 8,
-              padding: "0.8rem 0.9rem",
-              border: "1px solid #e5e7eb",
-              maxHeight: 480,
-              overflow: "auto",
-            }}
-          >
-            <h3 style={{ marginTop: 0 }}>{form.title || "（标题预览）"}</h3>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm as any]}
-              rehypePlugins={[rehypeHighlight as any]}
-            >
-              {form.content_md || "这里将展示 Markdown 渲染效果"}
-            </ReactMarkdown>
-          </div>
-        </div>
-      </section>
+        <Box
+          flex="1"
+          bg="white"
+          p={5}
+          borderRadius="lg"
+          boxShadow="sm"
+          maxH={{ base: "auto", lg: "640px" }}
+          overflowY="auto"
+        >
+          <Heading as="h2" size="md" mb={4}>
+            实时预览
+          </Heading>
+          <Box borderWidth="1px" borderRadius="md" p={4} bg="gray.50">
+            <Heading as="h3" size="sm" mb={3}>
+              {form.title || "（标题预览）"}
+            </Heading>
+            <Box className="wmde-markdown" fontSize="sm">
+              <MDEditorPreview
+                source={
+                  form.content_md || "这里将展示 Markdown 渲染效果"
+                }
+              />
+            </Box>
+          </Box>
+        </Box>
+      </Flex>
 
-      <section>
-        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.75rem" }}>博客列表</h2>
+      <Box bg="white" p={5} borderRadius="lg" boxShadow="sm">
+        <Heading as="h2" size="md" mb={4}>
+          博客列表
+        </Heading>
         {loading ? (
-          <p>加载中...</p>
+          <Text color="gray.500" fontSize="sm">
+            加载中...
+          </Text>
         ) : blogs.length === 0 ? (
-          <p>暂无博客。</p>
+          <Text color="gray.500" fontSize="sm">
+            暂无博客。
+          </Text>
         ) : (
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              backgroundColor: "#ffffff",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={{ borderBottom: "1px solid #e5e7eb", padding: "0.5rem" }}>
-                  标题
-                </th>
-                <th style={{ borderBottom: "1px solid #e5e7eb", padding: "0.5rem" }}>
-                  状态
-                </th>
-                <th style={{ borderBottom: "1px solid #e5e7eb", padding: "0.5rem" }}>
-                  创建时间
-                </th>
-                <th style={{ borderBottom: "1px solid #e5e7eb", padding: "0.5rem" }}>
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {blogs.map((b) => (
-                <tr key={b.id}>
-                  <td
-                    style={{
-                      borderBottom: "1px solid #f3f4f6",
-                      padding: "0.5rem",
-                    }}
-                  >
+          <Box display="flex" flexDirection="column" gap={3}>
+            {blogs.map((b) => (
+              <Box
+                key={b.id}
+                borderWidth="1px"
+                borderRadius="md"
+                p={3}
+                _hover={{ bg: "gray.50" }}
+              >
+                <Flex justify="space-between" align="flex-start" mb={1}>
+                  <Text fontWeight="medium" maxW="260px">
                     {b.title}
-                  </td>
-                  <td
-                    style={{
-                      borderBottom: "1px solid #f3f4f6",
-                      padding: "0.5rem",
-                      fontSize: "0.85rem",
-                    }}
+                  </Text>
+                  <Badge
+                    colorScheme={b.published ? "green" : "gray"}
+                    variant={b.published ? "solid" : "subtle"}
                   >
                     {b.published ? "已发布" : "草稿"}
-                  </td>
-                  <td
-                    style={{
-                      borderBottom: "1px solid #f3f4f6",
-                      padding: "0.5rem",
-                      fontSize: "0.85rem",
-                    }}
+                  </Badge>
+                </Flex>
+                <Text fontSize="xs" color="gray.500" mb={2}>
+                  {new Date(b.created_at).toLocaleString("zh-CN")}
+                </Text>
+                <Flex gap={2}>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => onEdit(b)}
                   >
-                    {new Date(b.created_at).toLocaleString("zh-CN")}
-                  </td>
-                  <td
-                    style={{
-                      borderBottom: "1px solid #f3f4f6",
-                      padding: "0.5rem",
-                      fontSize: "0.85rem",
-                    }}
+                    编辑
+                  </Button>
+                  <Button
+                    size="xs"
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => onDelete(b.id)}
                   >
-                    <button
-                      type="button"
-                      onClick={() => onEdit(b)}
-                      style={{
-                        marginRight: "0.4rem",
-                        padding: "0.25rem 0.6rem",
-                        borderRadius: 4,
-                        border: "1px solid #d1d5db",
-                        backgroundColor: "#ffffff",
-                        cursor: "pointer",
-                      }}
-                    >
-                      编辑
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(b.id)}
-                      style={{
-                        padding: "0.25rem 0.6rem",
-                        borderRadius: 4,
-                        border: "1px solid #fecaca",
-                        backgroundColor: "#fef2f2",
-                        color: "#b91c1c",
-                        cursor: "pointer",
-                      }}
-                    >
-                      删除
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    删除
+                  </Button>
+                </Flex>
+              </Box>
+            ))}
+          </Box>
         )}
-      </section>
-    </div>
+      </Box>
+    </Container>
   );
 }
